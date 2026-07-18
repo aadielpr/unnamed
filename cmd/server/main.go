@@ -7,9 +7,15 @@ import (
 	"github.com/aadielpr/unnamed/internal/db"
 	"github.com/aadielpr/unnamed/internal/server"
 	"github.com/aadielpr/unnamed/internal/storage"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("load config: %v", err)

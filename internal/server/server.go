@@ -23,7 +23,7 @@ func New(cfg config.Config, database *db.DB) *Server {
 	e := echo.New()
 	e.HideBanner = true
 
-	e.Use(middleware.Logger())
+	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 
