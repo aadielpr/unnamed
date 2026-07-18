@@ -33,7 +33,7 @@ Cover photo; likes / comments / guestbook / hashtags; live slideshow / TV displa
 
 ## Open items (tracked as GitHub tickets under the wayfinder map)
 
-- **Name the app** (`wayfinder:grilling`) — currently "EventLens" is a working name; repo is `unnamed`. Doesn't block building.
+- **Name the app** — deferred (resolved 2025-07-18). Stick with "EventLens" (working name) and `unnamed` repo. Frontrunner "Kala" (KBBI: moment); revisit post-MVP.
 - **Hosting topology** (`wayfinder:grilling`) — where the Go server, Postgres, and object storage + CDN live. Doesn't block building code; blocks going live.
 - **Image resolution tiers** (`wayfinder:research`) — how professionals serve responsive multi-level images (`/low` `/med` `/high`); refine beyond the MVP's 2-version approach. Doesn't block the MVP.
 - **Two-window lifecycle solid implementation** (`wayfinder:research`) — incl. the **cron/scheduler** question, auto-deletion mechanics, the USB/physical-handoff business flow, storage-tier durations, and quick-event validation. Doesn't block the MVP.
