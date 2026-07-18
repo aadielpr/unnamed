@@ -1,6 +1,6 @@
 .PHONY: dev infra run web-dev web-install web-build test migrate migrate-down
 
-DATABASE_URL ?= postgres://eventlens:eventlens@localhost:5432/eventlens?sslmode=disable
+DATABASE_URL ?= postgres://eventlens:eventlens@localhost:5433/eventlens?sslmode=disable
 GOOSE := go run github.com/pressly/goose/v3/cmd/goose@latest
 
 # Start local infrastructure (Postgres and MinIO) in Docker.
@@ -9,7 +9,7 @@ infra:
 
 # Run the Go API server with live reload.
 run:
-	go run github.com/air-verse/air@latest
+	air
 
 # Start the Vite dev server for the frontend.
 web-dev:
