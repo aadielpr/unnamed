@@ -1,19 +1,31 @@
-.PHONY: dev test web-install web-build migrate migrate-down
+.PHONY: dev infra run web-dev web-install web-build test migrate migrate-down
 
 DATABASE_URL ?= postgres://eventlens:eventlens@localhost:5432/eventlens?sslmode=disable
 GOOSE := go run github.com/pressly/goose/v3/cmd/goose@latest
 
-# Start the full local development stack with Docker Compose.
+# Start local infrastructure (Postgres and MinIO) in Docker.
+infra:
+	docker compose up -d --build
+
+# Run the Go API server with live reload.
+run:
+	go run github.com/air-verse/air@latest
+
+# Start the Vite dev server for the frontend.
+web-dev:
+	cd web && pnpm run dev
+
+# Run both the API and the frontend dev server at the same time.
 dev:
-	docker compose up --build
+	cd web && pnpm exec concurrently --kill-others --names "api,web" "make -C .. run" "pnpm run dev"
 
 # Install frontend dependencies.
 web-install:
-	cd web && npm install
+	cd web && pnpm install
 
 # Build the SPA for production.
 web-build:
-	cd web && npm run build
+	cd web && pnpm run build
 
 # Run all Go tests.
 test:
@@ -26,7 +38,3 @@ migrate:
 # Roll back the last database migration.
 migrate-down:
 	$(GOOSE) -dir migrations postgres "$(DATABASE_URL)" down
-
-# Run the Go server locally (requires DATABASE_URL and storage env vars).
-run:
-	go run ./cmd/server

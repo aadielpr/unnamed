@@ -9,13 +9,14 @@ A web app for collecting photos from event guests into one shared gallery.
 - **Database:** Postgres
 - **Object storage:** S3-compatible (MinIO for local dev, Cloudflare R2 for production)
 - **Migrations:** [goose](https://github.com/pressly/goose)
+- **Package manager:** [pnpm](https://pnpm.io/)
 
 ## Prerequisites
 
 - Go 1.26+
-- Node.js 22+
-- Docker + Docker Compose (for the local dev stack)
-- Postgres and MinIO, or Docker Compose to run them
+- Node.js 22+ (with [pnpm](https://pnpm.io/installation))
+- Docker + Docker Compose (for the local database and object storage)
+- A running Postgres server for local development (started via `make infra`)
 
 ## Quick start
 
@@ -25,15 +26,33 @@ A web app for collecting photos from event guests into one shared gallery.
    cp .env.example .env
    ```
 
-2. Start the full local stack:
+2. Install frontend dependencies:
+
+   ```bash
+   make web-install
+   ```
+
+3. Start the local infrastructure (Postgres and MinIO):
+
+   ```bash
+   make infra
+   ```
+
+4. Apply database migrations:
+
+   ```bash
+   make migrate
+   ```
+
+5. Run the API and the frontend dev server:
 
    ```bash
    make dev
    ```
 
-   This builds the SPA and Go server, runs Postgres and MinIO, applies migrations, and starts the API on [http://localhost:8080](http://localhost:8080).
+   The API uses `air` for live reload. The frontend runs the Vite dev server.
 
-3. Check health:
+6. Check health:
 
    ```bash
    curl http://localhost:8080/api/health
@@ -45,51 +64,17 @@ A web app for collecting photos from event guests into one shared gallery.
    {"status":"ok","db":"reachable"}
    ```
 
-## Development without Docker
+## Available commands
 
-If you already have Postgres and MinIO running locally:
-
-1. Install frontend dependencies:
-
-   ```bash
-   make web-install
-   ```
-
-2. Build the SPA:
-
-   ```bash
-   make web-build
-   ```
-
-3. Apply database migrations:
-
-   ```bash
-   make migrate
-   ```
-
-4. Run the server:
-
-   ```bash
-   make run
-   ```
-
-## Migrations
-
-Migrations live in `migrations/` and use `goose`.
-
-- Apply migrations: `make migrate`
-- Roll back the last migration: `make migrate-down`
-- Check status: `go run github.com/pressly/goose/v3/cmd/goose@latest -dir migrations postgres "$DATABASE_URL" status`
-
-## Tests
-
-Run the full test suite:
-
-```bash
-make test
-```
-
-Tests run against a real Postgres database and a real S3-compatible store (MinIO by default). Set `TEST_DATABASE_URL`, `TEST_STORAGE_ENDPOINT`, and related variables to point to your test infrastructure.
+- `make infra` — start Postgres and MinIO in Docker.
+- `make run` — run the Go API with `air` live reload.
+- `make web-dev` — run the Vite dev server.
+- `make dev` — run both the API and the frontend dev server together.
+- `make web-install` — install frontend dependencies.
+- `make web-build` — build the SPA for production.
+- `make migrate` — apply database migrations.
+- `make migrate-down` — roll back the last migration.
+- `make test` — run all Go tests.
 
 ## Project structure
 
@@ -106,7 +91,8 @@ Tests run against a real Postgres database and a real S3-compatible store (MinIO
 ├── web/                # SolidJS SPA
 │   ├── src/            # Source files
 │   └── dist/           # Build output (served by Go)
-├── docker-compose.yml  # Local dev stack
+├── docker-compose.yml  # Local infrastructure (Postgres + MinIO)
 ├── Dockerfile          # Production container build
-└── Makefile            # Common commands
+├── Makefile            # Common commands
+└── .air.toml           # Air live-reload configuration
 ```
