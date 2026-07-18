@@ -15,8 +15,11 @@ A web app for collecting photos from event guests into one shared gallery.
 
 - Go 1.26+
 - Node.js 22+ (with [pnpm](https://pnpm.io/installation))
-- Docker + Docker Compose (for the local database and object storage)
-- A running Postgres server for local development (started via `make infra`)
+- For local infrastructure, either:
+  - **Docker + Docker Compose** (recommended — runs Postgres and MinIO with one command), or
+  - **Native installs** of Postgres and MinIO on your machine.
+
+The app does not depend on Docker — it reads connection settings only from environment variables. Docker is just the easiest way to get Postgres and MinIO running. If you already run them natively, skip Docker and point `.env` at your local instances. See [ADR 0002](docs/adr/0002-infrastructure-backend-agnostic.md).
 
 ## Quick start
 
@@ -26,6 +29,10 @@ A web app for collecting photos from event guests into one shared gallery.
    cp .env.example .env
    ```
 
+   The defaults assume the Docker path (Postgres on port 5433, MinIO on
+   port 9000). If you run Postgres or MinIO natively, edit the relevant
+   values in `.env` to match your setup.
+
 2. Install frontend dependencies:
 
    ```bash
@@ -34,9 +41,14 @@ A web app for collecting photos from event guests into one shared gallery.
 
 3. Start the local infrastructure (Postgres and MinIO):
 
-   ```bash
-   make infra
-   ```
+   - **With Docker (recommended):**
+
+     ```bash
+     make infra
+     ```
+
+   - **Without Docker:** start your local Postgres and MinIO yourself. The
+     `DATABASE_URL` and `STORAGE_*` values in `.env` must point at them.
 
 4. Apply database migrations:
 
@@ -66,7 +78,7 @@ A web app for collecting photos from event guests into one shared gallery.
 
 ## Available commands
 
-- `make infra` — start Postgres and MinIO in Docker.
+- `make infra` — start Postgres and MinIO in Docker (optional; skip if you run them natively).
 - `make run` — run the Go API with `air` live reload.
 - `make web-dev` — run the Vite dev server.
 - `make dev` — run both the API and the frontend dev server together.

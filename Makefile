@@ -1,6 +1,9 @@
 .PHONY: dev infra run web-dev web-install web-build test migrate migrate-down
 
-DATABASE_URL ?= postgres://eventlens:eventlens@localhost:5433/eventlens?sslmode=disable
+# .env is the single source of truth for connection settings; it overrides
+# nothing if absent. Both Docker and native-local setups edit .env, not Make.
+-include .env
+
 GOOSE := go run github.com/pressly/goose/v3/cmd/goose@latest
 
 # Start local infrastructure (Postgres and MinIO) in Docker.
