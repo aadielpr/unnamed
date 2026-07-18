@@ -1,0 +1,97 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: eventlens
+      POSTGRES_PASSWORD: eventlens
+      POSTGRES_DB: eventlens
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eventlens -d eventlens"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio-create-bucket:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD} &&
+      mc mb local/eventlens || true &&
+      mc policy set public local/eventlens || true
+      "
+
+  migrate:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM golang:1.26-alpine
+        RUN apk add --no-cache git
+        RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+        WORKDIR /app
+        COPY migrations ./migrations
+        ENTRYPOINT ["goose"]
+    command: ["up"]
+    environment:
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: postgres://eventlens:eventlens@postgres:5432/eventlens?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/app/migrations:ro
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PORT: 8080
+      DATABASE_URL: postgres://eventlens:eventlens@postgres:5432/eventlens?sslmode=disable
+      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_REGION: us-east-1
+      STORAGE_BUCKET: eventlens
+      STORAGE_ACCESS_KEY_ID: minioadmin
+      STORAGE_SECRET_ACCESS_KEY: minioadmin
+      STORAGE_USE_PATH_STYLE: "true"
+      STORAGE_PUBLIC_URL_BASE: http://localhost:9000
+      STATIC_DIR: /app/web/dist
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+  minio_data:
