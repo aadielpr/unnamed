@@ -1,32 +1,23 @@
-package storage_test
+package storage
 
 import (
 	"context"
 	"errors"
 	"testing"
 
-	"github.com/aadielpr/unnamed/internal/storage"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/stretchr/testify/require"
 )
 
-func createBucket(t *testing.T, cfg storage.Config) {
+// createBucket ensures the test bucket exists, reusing the same client wiring
+// as NewS3Store (newClient) instead of rebuilding the AWS config by hand.
+func createBucket(t *testing.T, cfg Config) {
 	t.Helper()
 
-	awsCfg, err := config.LoadDefaultConfig(context.Background(),
-		config.WithRegion(cfg.Region),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.AccessKeyID, cfg.SecretAccessKey, "")),
-		config.WithBaseEndpoint(cfg.Endpoint),
-	)
+	client, err := newClient(cfg)
 	require.NoError(t, err)
-
-	client := s3.NewFromConfig(awsCfg, func(o *s3.Options) {
-		o.UsePathStyle = cfg.UsePathStyle
-	})
 
 	_, err = client.CreateBucket(context.Background(), &s3.CreateBucketInput{
 		Bucket: aws.String(cfg.Bucket),

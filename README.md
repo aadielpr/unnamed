@@ -88,6 +88,24 @@ The app does not depend on Docker — it reads connection settings only from env
 - `make migrate-down` — roll back the last migration.
 - `make test` — run all Go tests.
 
+## Tests
+
+`make test` runs the Go suite (`go test -p 1 ./...`). Packages run
+serialized because the suite shares one mutable test Postgres.
+
+DB-backed tests require a real test Postgres via `TEST_DATABASE_URL` and skip
+when it's unset (there is no per-developer default — the PRD requires a real
+DB, not a stand-in):
+
+```bash
+export TEST_DATABASE_URL="postgres://user:pass@localhost:5433/eventlens_test?sslmode=disable"
+make test
+```
+
+Storage tests hit an S3-compatible endpoint via `TEST_STORAGE_*`, defaulting
+to a local MinIO at `http://localhost:9000` with `minioadmin/minioadmin`
+(bring it up with `make infra`, or run MinIO natively).
+
 ## Project structure
 
 ```

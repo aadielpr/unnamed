@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"log"
+	"os"
 
 	"github.com/aadielpr/unnamed/internal/config"
 	"github.com/aadielpr/unnamed/internal/db"
@@ -11,9 +13,8 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	if err := loadEnv(); err != nil {
+		log.Fatalf("load .env: %v", err)
 	}
 
 	cfg, err := config.Load()
@@ -34,7 +35,6 @@ func main() {
 		AccessKeyID:     cfg.Storage.AccessKeyID,
 		SecretAccessKey: cfg.Storage.SecretAccessKey,
 		UsePathStyle:    cfg.Storage.UsePathStyle,
-		PublicURLBase:   cfg.Storage.PublicURLBase,
 	})
 	if err != nil {
 		log.Fatalf("init storage: %v", err)
@@ -45,4 +45,12 @@ func main() {
 	if err := srv.Start(); err != nil {
 		log.Fatalf("server: %v", err)
 	}
+}
+
+func loadEnv() error {
+	err := godotenv.Load()
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	return err
 }

@@ -21,7 +21,6 @@ type StorageConfig struct {
 	AccessKeyID     string
 	SecretAccessKey string
 	UsePathStyle    bool
-	PublicURLBase   string
 }
 
 // Load reads configuration from the environment.
@@ -43,7 +42,6 @@ func Load() (Config, error) {
 		AccessKeyID:     os.Getenv("STORAGE_ACCESS_KEY_ID"),
 		SecretAccessKey: os.Getenv("STORAGE_SECRET_ACCESS_KEY"),
 		UsePathStyle:    os.Getenv("STORAGE_USE_PATH_STYLE") == "true",
-		PublicURLBase:   os.Getenv("STORAGE_PUBLIC_URL_BASE"),
 	}
 
 	if storage.Endpoint == "" {

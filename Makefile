@@ -4,7 +4,8 @@
 # nothing if absent. Both Docker and native-local setups edit .env, not Make.
 -include .env
 
-GOOSE := go run github.com/pressly/goose/v3/cmd/goose@latest
+# Pinned to the goose version in go.mod (not @latest, which would drift).
+GOOSE := go run github.com/pressly/goose/v3/cmd/goose
 
 # Start local infrastructure (Postgres and MinIO) in Docker.
 infra:
@@ -30,9 +31,10 @@ web-install:
 web-build:
 	cd web && pnpm run build
 
-# Run all Go tests.
+# Run all Go tests. Serialized (-p 1) because the suite shares one mutable
+# test Postgres; without this, packages racing on the same DB state flake.
 test:
-	go test ./...
+	go test -p 1 ./...
 
 # Apply database migrations.
 migrate:
