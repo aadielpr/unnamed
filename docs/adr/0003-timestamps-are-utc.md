@@ -1,0 +1,5 @@
+# Timestamps are UTC
+
+All event timestamps (`starts_at`, `upload_closes_at`, `gallery_expires_at`, `created_at`) are stored and returned as UTC. Server-generated timestamps (`created_at`, the lifecycle defaults derived from `starts_at`) are UTC by construction. Output serialization is RFC 3339 with the `Z` suffix (e.g. `2025-08-15T19:00:00Z`), never a local offset.
+
+Input is parsed leniently: a client may send an offset, a `Z`, or a naive datetime, and the server normalizes to UTC on the way in. We deliberately do not push timezone handling to the frontend — the backend's contract is "any timestamp I receive is UTC," so a naive `2025-08-15T19:00:00` is taken as `19:00:00Z`. This keeps one timezone rule in one place and avoids a class of "the countdown is wrong" bugs from clients guessing offsets.
