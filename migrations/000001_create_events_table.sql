@@ -9,7 +9,7 @@ CREATE TABLE events (
     upload_closes_at TIMESTAMPTZ NOT NULL,
     gallery_expires_at TIMESTAMPTZ NOT NULL,
     is_closed BOOLEAN NOT NULL DEFAULT FALSE,
-    admin_token TEXT NOT NULL,
+    admin_token_hash TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 -- +goose StatementEnd
